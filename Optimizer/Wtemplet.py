@@ -2,19 +2,21 @@
 import numpy as np
 import geatpy as ea  # 导入geatpy库
 from cmaes import CMA
-import math
 
 
-def individual_verify(individual, VarType, scale_range):
-    Dim = len(individual)
-    for i in range(Dim):
-        if VarType[i] == 1:
-            individual[i] = int(individual[i])
-            if individual[i] < scale_range[0][i]:
-                individual[i] = scale_range[0][i]
-            if individual[i] > scale_range[1][i]:
-                individual[i] = scale_range[1][i]
-    return individual
+def centering_W(Phen, FitV):
+    w = []
+    center = []
+    F_sum = sum(FitV[:, 0])
+    for f in FitV:
+        w.append(f[0] / F_sum)
+    for i in range(len(Phen[0])):
+        gene = Phen[:, i]
+        g = 0
+        for j in range(len(gene)):
+            g += w[j] * gene[j]
+        center.append(g)
+    return center
 
 
 class soea_DE_currentToBest_1_L_templet(ea.SoeaAlgorithm):
@@ -75,41 +77,9 @@ soea_DE_currentToBest_1_L_templet : class - 差分进化DE/current-to-best/1/bin
             population = (prophetPop + population)[:NIND]  # 插入先知种群
         self.call_aimFunc(population)  # 计算种群的目标函数值
         population.FitnV = ea.scaling(population.ObjV, population.CV, self.problem.maxormins)  # 计算适应度
-        sigma = 1.3
+
         # ===========================开始进化============================
         while not self.terminated(population):
-
-            """Apply LS based on CMA-ES between best individual"""
-            best_indi = np.argmax(population.FitnV)
-            LS_size = int(NIND / 10)
-            LSPop = ea.Population(population.Encoding, population.Field, LS_size)  # 存储LS个体
-            Generator = CMA(mean=np.array(population.Chrom[best_indi]), bounds=self.problem.ranges.T, sigma=sigma,
-                            population_size=LS_size + NIND)
-            Phen = []
-            CV = []
-            ObjV = []
-            solutions = []
-            for _ in range(LS_size):
-                x = Generator.ask()
-                x = individual_verify(x, self.problem.varTypes, self.problem.ranges)
-                obj, cv = self.problem.evalVars(x)
-                if math.isnan(obj[0]):
-                    obj = [1e10]
-                Phen.append(x)
-                CV.append(cv)
-                ObjV.append(obj)
-            LSPop.ObjV = np.array(ObjV)
-            LSPop.Chrom = np.array(Phen)
-            LSPop.Phen = np.array(Phen)
-            LSPop.CV = -np.array(CV)
-            tPop = population + LSPop
-            tPop.FitnV = ea.scaling(tPop.ObjV, tPop.CV, self.problem.maxormins)  # 计算适应度
-            sort_index = np.argsort(-np.array(tPop.FitnV[:, 0]))
-            population = tPop[sort_index[0:NIND]]
-            for i in range(LS_size + NIND):
-                solutions.append((tPop.Phen[i], tPop.ObjV[i]))
-            Generator.tell(solutions)
-            sigma = Generator._sigma
 
             # 进行差分进化操作
             r0 = np.arange(NIND)
@@ -123,5 +93,29 @@ soea_DE_currentToBest_1_L_templet : class - 差分进化DE/current-to-best/1/bin
             tempPop.FitnV = ea.scaling(tempPop.ObjV, tempPop.CV, self.problem.maxormins)  # 计算适应度
             population = tempPop[ea.selecting('otos', tempPop.FitnV, NIND)]  # 采用One-to-One Survivor选择，产生新一代种群
             population.shuffle()
+
+            """Apply LS based on ES between elite population"""
+            sort_index = np.argsort(-np.array(population.FitnV[:, 0]))
+            elite_size = int(NIND * 0.05)
+            elite_index = sort_index[0:elite_size]
+            elite_Pop = population[elite_index]
+            LS_size = int(NIND / 10)
+            LSPop = ea.Population(population.Encoding, population.Field, LS_size)  # 存储LS个体
+            center = centering_W(elite_Pop.Phen, elite_Pop.FitV)
+            Generator = CMA(mean=np.array(center), bounds=self.problem.ranges.T, sigma=2, population_size=NIND)
+            Phen = []
+            ObjV = []
+            for _ in range(LS_size):
+                x = Generator.ask()
+                obj = self.problem.evalVars(x)
+                Phen.append(x)
+                ObjV.append([obj])
+            LSPop.ObjV = np.array(ObjV)
+            LSPop.Chrom = np.array(Phen)
+            LSPop.Phen = np.array(Phen)
+            tPop = population + LSPop
+            tPop.FitnV = ea.scaling(tPop.ObjV, tPop.CV, self.problem.maxormins)  # 计算适应度
+            sort_index = np.argsort(-np.array(tPop.FitnV[:, 0]))
+            population = tPop[sort_index[0:NIND]]
 
         return self.finishing(population)  # 调用finishing完成后续工作并返回结果
