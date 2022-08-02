@@ -1,7 +1,6 @@
 from pymoo.algorithms.soo.nonconvex import random_search
 from pymoo.optimize import minimize
 from Problems import MyProblem
-from cec2013_func.functions import Benchmark
 from pymoo.factory import get_termination
 
 

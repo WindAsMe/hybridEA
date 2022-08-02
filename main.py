@@ -1,4 +1,4 @@
-from cec2013_func.functions import Benchmark
+from Benchmark import CEC_functions
 import numpy as np
 from os import path
 from Optimizer import CMAES, DE, ES, GA, PSO, hybridDE, Wtemplet, RS
@@ -12,7 +12,7 @@ def write_obj(data, path):
 
 
 if __name__ == '__main__':
-    Dim = [2, 5, 10]
+    Dim = [2, 5, 10, 20]
     this_path = path.realpath(__file__)
 
     for dim in Dim:
@@ -30,7 +30,7 @@ if __name__ == '__main__':
         Benchmark initialization
         '''
         for func_num in range(1, 29):
-            bench = Benchmark(dim)
+            bench = CEC_functions(dim)
 
             """Parameter in Y contains individual and fun_num"""
 
@@ -48,37 +48,37 @@ if __name__ == '__main__':
             for i in range(trial):
                 print('func: ', func_num, ' trail run: ', i+1)
 
-                # """CMA-ES optimization"""
-                # CMAES_trace = CMAES.CMAES_exe(dim, Max_iter, NIND, func, scale_range)
-                # write_obj(CMAES_trace, CMAES_obj_path)
-                #
-                # """DE optimization"""
-                # DE_trace = DE.DE_exe(dim, Max_iter, NIND, func, scale_range)
-                # write_obj(DE_trace, DE_obj_path)
-                #
-                # """ES optimization"""
-                # ES_trace = ES.ES_exe(dim, Max_iter, NIND, func, scale_range)
-                # write_obj(ES_trace, ES_obj_path)
-                #
-                # """GA optimization"""
-                # GA_trace = GA.GA_exe(dim, Max_iter, NIND, func, scale_range)
-                # write_obj(GA_trace, GA_obj_path)
+                """CMA-ES optimization"""
+                CMAES_trace = CMAES.CMAES_exe(dim, Max_iter, NIND, func, scale_range)
+                write_obj(CMAES_trace, CMAES_obj_path)
+
+                """DE optimization"""
+                DE_trace = DE.DE_exe(dim, Max_iter, NIND, func, scale_range)
+                write_obj(DE_trace, DE_obj_path)
+
+                """ES optimization"""
+                ES_trace = ES.ES_exe(dim, Max_iter, NIND, func, scale_range)
+                write_obj(ES_trace, ES_obj_path)
+
+                """GA optimization"""
+                GA_trace = GA.GA_exe(dim, Max_iter, NIND, func, scale_range)
+                write_obj(GA_trace, GA_obj_path)
 
                 """PSO optimization"""
-                # PSO_trace = PSO.PSO_exe(dim, Max_iter, NIND, func)
-                # write_obj(PSO_trace, PSO_obj_path)
+                PSO_trace = PSO.PSO_exe(dim, Max_iter, NIND, func)
+                write_obj(PSO_trace, PSO_obj_path)
 
                 """RS optimization"""
                 RS_trace = RS.RS_exe(dim, Max_iter, NIND, func)
                 write_obj(RS_trace, RS_obj_path)
 
-                # """hybridDE_a with averaging optimization"""
-                # hybridDE_ave_trace = hybridDE.hybridDE_ave_exe(dim, Max_iter, NIND, func, scale_range)
-                # write_obj(hybridDE_ave_trace, hybridDE_ave_obj_path)
-                #
-                # """hybridDE_a with weighting optimization"""
-                # hybridDE_w_trace = hybridDE.hybridDE_w_exe(dim, Max_iter, NIND, func, scale_range)
-                # write_obj(hybridDE_w_trace, hybridDE_w_obj_path)
+                """hybridDE_a with averaging optimization"""
+                hybridDE_ave_trace = hybridDE.hybridDE_ave_exe(dim, Max_iter, NIND, func, scale_range)
+                write_obj(hybridDE_ave_trace, hybridDE_ave_obj_path)
+
+                """hybridDE_a with weighting optimization"""
+                hybridDE_w_trace = hybridDE.hybridDE_w_exe(dim, Max_iter, NIND, func, scale_range)
+                write_obj(hybridDE_w_trace, hybridDE_w_obj_path)
 
 
 

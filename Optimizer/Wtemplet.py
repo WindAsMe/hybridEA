@@ -92,7 +92,7 @@ soea_DE_currentToBest_1_L_templet : class - 差分进化DE/current-to-best/1/bin
             tempPop = population + experimentPop  # 临时合并，以调用otos进行一对一生存者选择
             tempPop.FitnV = ea.scaling(tempPop.ObjV, tempPop.CV, self.problem.maxormins)  # 计算适应度
             population = tempPop[ea.selecting('otos', tempPop.FitnV, NIND)]  # 采用One-to-One Survivor选择，产生新一代种群
-            population.shuffle()
+
 
             """Apply LS based on ES between elite population"""
             sort_index = np.argsort(-np.array(population.FitnV[:, 0]))
@@ -101,7 +101,7 @@ soea_DE_currentToBest_1_L_templet : class - 差分进化DE/current-to-best/1/bin
             elite_Pop = population[elite_index]
             LS_size = int(NIND / 10)
             LSPop = ea.Population(population.Encoding, population.Field, LS_size)  # 存储LS个体
-            center = centering_W(elite_Pop.Phen, elite_Pop.FitV)
+            center = centering_W(elite_Pop.Phen, elite_Pop.FitnV)
             Generator = CMA(mean=np.array(center), bounds=self.problem.ranges.T, sigma=2, population_size=NIND)
             Phen = []
             ObjV = []
@@ -118,4 +118,5 @@ soea_DE_currentToBest_1_L_templet : class - 差分进化DE/current-to-best/1/bin
             sort_index = np.argsort(-np.array(tPop.FitnV[:, 0]))
             population = tPop[sort_index[0:NIND]]
 
+            population.shuffle()
         return self.finishing(population)  # 调用finishing完成后续工作并返回结果
