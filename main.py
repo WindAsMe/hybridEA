@@ -12,7 +12,7 @@ def write_obj(data, path):
 
 
 if __name__ == '__main__':
-    Dim = [2, 5, 10, 20]
+    Dim = [2, 5, 10]
     this_path = path.realpath(__file__)
 
     for dim in Dim:
